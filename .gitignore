@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Test / lint caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local secrets
+.env
+.env.local
+.env.*.local
+
+# SQLite + raw report storage (local-only)
+data/app.db
+data/app.db-*
+data/storage/
+data/historical-reports/
+
+# Runtime artifacts
+data/.fuse_hidden*
+data/*.pid
+*.pid
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build / dist
+build/
+dist/
+*.egg-info/
+
+# Screenshots & temp artifacts (local dev only)
+screens/
+*.tmp

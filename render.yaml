@@ -1,0 +1,51 @@
+# Render Blueprint — Quick-path deploy for Headline Under The Hood
+# https://render.com/docs/blueprint-spec
+#
+# Creates a single Web Service backed by a 1 GB persistent disk for the
+# SQLite database and raw release-text storage. Temporal is disabled
+# (USE_TEMPORAL=false) so analysis runs synchronously inside the request.
+# Migrate to Postgres + Background Worker + Temporal Cloud once you've
+# outgrown this setup.
+
+services:
+  - type: web
+    name: headline-under-the-hood
+    runtime: python
+    plan: starter            # $7/mo; switch to "free" for testing (sleeps after 15 min)
+    region: oregon           # change to your nearest region if you like
+    branch: main
+    rootDir: .
+
+    # --- Build & run ------------------------------------------------------
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+
+    # --- Health & traffic -------------------------------------------------
+    healthCheckPath: /api/reports
+    autoDeploy: true         # push to main = auto-deploy
+
+    # --- Persistent storage ------------------------------------------------
+    # The disk persists across deploys/restarts. Mounted at /var/data so the
+    # SQLite file and raw release text survive every push.
+    disk:
+      name: app-data
+      mountPath: /var/data
+      sizeGB: 1              # plenty for thousands of reports; expandable later
+
+    # --- Environment ------------------------------------------------------
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: APP_NAME
+        value: Headline Under The Hood
+      - key: DATABASE_PATH
+        value: /var/data/app.db
+      - key: STORAGE_ROOT
+        value: /var/data/storage
+      - key: USE_TEMPORAL
+        value: "false"
+      # --- Secrets (set in the dashboard, do not commit values) ----------
+      - key: GEMINI_API_KEY
+        sync: false          # prompts you for the value when the blueprint runs
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash-lite

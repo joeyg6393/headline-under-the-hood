@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Headline Under The Hood</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">H</div>
+      <span>Headline Under The Hood</span>
+      <span class="brand-sub">· release desk</span>
+    </div>
+    <div class="top-spacer"></div>
+    <button class="icon-btn" id="themeToggle" aria-label="Toggle theme" title="Toggle theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="icon-btn" id="refreshButton" aria-label="Refresh" title="Refresh">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+    </button>
+    <button class="btn-primary" id="openSheet">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      Analyze
+    </button>
+    <div class="menu-wrap">
+      <button class="icon-btn" id="overflowBtn" aria-label="More" title="More">
+        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+      </button>
+      <div class="menu" id="overflowMenu">
+        <button id="seedButton" type="button">Seed examples</button>
+        <button id="demoButton" type="button">Run demo</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="pane stats" aria-label="Dashboard summary">
+      <div class="stat">
+        <span class="stat-label">Reports</span>
+        <div class="stat-value"><strong id="statTotal">0</strong></div>
+        <svg class="stat-spark" id="sparkTotal" viewBox="0 0 100 18" preserveAspectRatio="none" aria-hidden="true"></svg>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Avg score</span>
+        <div class="stat-value"><strong id="statAverage">--</strong></div>
+        <svg class="stat-spark" id="sparkAvg" viewBox="0 0 100 18" preserveAspectRatio="none" aria-hidden="true" style="color:var(--warn)"></svg>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Mixed / weak</span>
+        <div class="stat-value"><strong id="statRisk">0</strong></div>
+        <svg class="stat-spark" id="sparkRisk" viewBox="0 0 100 18" preserveAspectRatio="none" aria-hidden="true" style="color:var(--bad)"></svg>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Latest release</span>
+        <div class="stat-value"><strong id="statLatest" style="font-size:18px">--</strong></div>
+        <span class="stat-sub" id="statLatestSub"></span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Release types</span>
+        <div class="stat-value"><strong id="statTypes">0</strong></div>
+        <span class="stat-sub" id="statTypesSub"></span>
+      </div>
+    </section>
+
+    <aside class="pane rail">
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="searchInput" type="search" placeholder="Search headlines, sources" />
+      </div>
+
+      <div>
+        <h3 style="margin-bottom:8px">Source</h3>
+        <div class="seg" id="sourceSeg" role="tablist" aria-label="Source filter"></div>
+      </div>
+
+      <div style="display:grid; gap:8px">
+        <h3>Release type</h3>
+        <select class="field" id="typeFilter"></select>
+      </div>
+
+      <div style="display:grid; gap:8px">
+        <h3>Activity · last 7 weeks</h3>
+        <div class="heatmap" id="heatmap"></div>
+        <div class="heatmap-legend">
+          <span>weak</span>
+          <i style="background:color-mix(in srgb, var(--bad) 25%, var(--panel))"></i>
+          <i style="background:color-mix(in srgb, var(--warn) 25%, var(--panel))"></i>
+          <i style="background:color-mix(in srgb, var(--good) 30%, var(--panel))"></i>
+          <i style="background:color-mix(in srgb, var(--good) 55%, var(--panel))"></i>
+          <span>strong</span>
+        </div>
+      </div>
+    </aside>
+
+    <section class="pane feed">
+      <div class="feed-head">
+        <h2>Release feed</h2>
+        <span id="feedCount" class="count" aria-live="polite">0 reports</span>
+      </div>
+      <div id="reportFeed"></div>
+    </section>
+
+    <section id="detailPanel" class="pane detail"></section>
+  </main>
+
+  <button class="fab" id="fab" aria-label="New analysis">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+  <div class="sheet-backdrop" id="sheetBackdrop"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-labelledby="sheetTitle" aria-modal="true">
+    <div class="sheet-grip"></div>
+    <h3 id="sheetTitle">New analysis</h3>
+    <div class="preset-row" id="presetButtons" aria-label="Quick fill presets"></div>
+    <form id="reportForm">
+      <div class="field-row">
+        <label>Source <input name="source" value="BLS" required /></label>
+      </div>
+      <div class="field-row">
+        <div class="two">
+          <label>Release type
+            <input name="report_type" list="reportTypeOptions" value="Nonfarm Payrolls" required />
+            <datalist id="reportTypeOptions"></datalist>
+          </label>
+          <label>Release date <input name="release_date" type="date" required /></label>
+        </div>
+      </div>
+      <div class="field-row">
+        <label>Headline <input name="headline" value="Payrolls jump by 150k, crushing the 65k estimate" required /></label>
+      </div>
+      <div class="field-row">
+        <label>Report text <textarea name="report_text" required></textarea></label>
+      </div>
+      <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:11px;">Analyze report</button>
+      <p id="sheetStatus" style="margin-top:10px; text-align:center;" aria-live="polite"></p>
+    </form>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
