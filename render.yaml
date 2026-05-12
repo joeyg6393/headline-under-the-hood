@@ -1,17 +1,22 @@
-# Render Blueprint — Quick-path deploy for Headline Under The Hood
+# Render Blueprint — Free-tier quick-path deploy for Headline Under The Hood
 # https://render.com/docs/blueprint-spec
 #
-# Creates a single Web Service backed by a 1 GB persistent disk for the
-# SQLite database and raw release-text storage. Temporal is disabled
-# (USE_TEMPORAL=false) so analysis runs synchronously inside the request.
-# Migrate to Postgres + Background Worker + Temporal Cloud once you've
-# outgrown this setup.
+# Creates a single Web Service on the free plan. NO persistent disk because
+# Render's free tier doesn't support disks — that means the SQLite database
+# and raw release-text files are EPHEMERAL: every cold-start (after 15 min of
+# inactivity) or deploy gives you a fresh, empty database. Re-click "Seed
+# examples" in the dashboard to repopulate.
+#
+# When you outgrow this, change `plan: free` to `plan: starter` ($7/mo,
+# always-on), uncomment the `disk:` block below to add 1 GB persistent
+# storage, and switch DATABASE_PATH + STORAGE_ROOT to /var/data/* values.
+# A `git push` after that swap auto-deploys the upgraded service.
 
 services:
   - type: web
     name: headline-under-the-hood
     runtime: python
-    plan: starter            # $7/mo; switch to "free" for testing (sleeps after 15 min)
+    plan: free               # sleeps after 15 min idle, ephemeral filesystem
     region: oregon           # change to your nearest region if you like
     branch: main
     rootDir: .
@@ -24,13 +29,12 @@ services:
     healthCheckPath: /api/reports
     autoDeploy: true         # push to main = auto-deploy
 
-    # --- Persistent storage ------------------------------------------------
-    # The disk persists across deploys/restarts. Mounted at /var/data so the
-    # SQLite file and raw release text survive every push.
-    disk:
-      name: app-data
-      mountPath: /var/data
-      sizeGB: 1              # plenty for thousands of reports; expandable later
+    # --- Persistent storage (disabled on free plan) -----------------------
+    # Uncomment the disk block below after upgrading to plan: starter.
+    # disk:
+    #   name: app-data
+    #   mountPath: /var/data
+    #   sizeGB: 1
 
     # --- Environment ------------------------------------------------------
     envVars:
@@ -38,10 +42,12 @@ services:
         value: 3.11.9
       - key: APP_NAME
         value: Headline Under The Hood
+      # Ephemeral paths under /tmp because the free tier has no persistent
+      # disk. Each restart starts with an empty database.
       - key: DATABASE_PATH
-        value: /var/data/app.db
+        value: /tmp/data/app.db
       - key: STORAGE_ROOT
-        value: /var/data/storage
+        value: /tmp/data/storage
       - key: USE_TEMPORAL
         value: "false"
       # --- Secrets (set in the dashboard, do not commit values) ----------
